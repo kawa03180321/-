@@ -1,1 +1,40 @@
+name: Update Images List
 
+on:
+  push:
+    paths:
+      - 'images/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: Pythonをセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Pythonスクリプトを実行
+        run: python scripts/generate-images.py
+
+      - name: 変更をコミット
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add images.json
+
+          if git diff --cached --quiet; then
+            echo "変更なし"
+          else
+            git commit -m "自動更新: images.json"
+            git push
+          fi
